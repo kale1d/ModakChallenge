@@ -1,12 +1,20 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FadeInImage } from '../../components/FadeInImage';
 import { AppStackNavigationProp } from '../../navigation/navTypes';
 import { apiProvider } from '../../provider/apiProvider';
 import { Artwork } from '../../types/Artworks.types';
 import { Colors } from '../../utils/colors';
-import { getImageURL, IMAGE_SIZE, randomColor } from '../../utils/util';
+import { getImageURL, IMAGE_SIZE } from '../../utils/util';
 
 export const ArtworkListScreen: React.FC = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
@@ -26,7 +34,7 @@ export const ArtworkListScreen: React.FC = () => {
           });
           return { ...a, image: img };
         });
-        setArtworks(() => [...artworks, ...test]);
+        setArtworks(() => (artworks.length ? [...artworks, ...test] : test));
       }
     } catch (e) {
       console.error(e);
@@ -39,9 +47,12 @@ export const ArtworkListScreen: React.FC = () => {
     setPage(page + 1);
   }, [page]);
 
-  const goToDetail = useCallback(({ id }: { id: number }) => {
-    return navigation.navigate('ArtworkDetail', { id });
-  }, []);
+  const goToDetail = useCallback(
+    ({ id }: { id: number }) => {
+      navigation.navigate('ArtworkDetail', { id });
+    },
+    [navigation],
+  );
 
   useEffect(() => {
     if (!artworks.length) {
@@ -59,7 +70,6 @@ export const ArtworkListScreen: React.FC = () => {
     ({ item, index }: { item: Artwork; index: number }) => {
       const isEven = index % 2 === 0;
       return (
-        //agregar placeholder
         <TouchableOpacity onPress={() => goToDetail({ id: item.id })}>
           <View
             style={[
@@ -75,8 +85,8 @@ export const ArtworkListScreen: React.FC = () => {
                 alignItems: 'center',
               },
             ]}>
-            <Image
-              source={{ uri: item.image }}
+            <FadeInImage
+              image={item.image}
               style={[{ flexGrow: 1 }, { width: 150, height: 150 }]}
             />
             <View
@@ -109,6 +119,7 @@ export const ArtworkListScreen: React.FC = () => {
         renderItem={renderItem}
         onEndReachedThreshold={0.5}
         onEndReached={getMoreArtworks}
+        ListFooterComponent={<ActivityIndicator />}
       />
     </SafeAreaView>
   );

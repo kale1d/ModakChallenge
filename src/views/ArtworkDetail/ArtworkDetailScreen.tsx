@@ -8,7 +8,12 @@ import {
   TouchableHighlight,
   View,
 } from 'react-native';
+import {
+  ScrollView,
+  TouchableWithoutFeedback,
+} from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PinchToZoom } from '../../components/PinchToZoom';
 import {
   AppStackNavigationProp,
   AppStackParamList,
@@ -23,8 +28,6 @@ type ArtworkDetailScreenRouteProp = RouteProp<
   'ArtworkDetail'
 >;
 
-const width = Dimensions.get('window').width;
-const height = Dimensions.get('window').height / 1.5;
 const INITIAL_STATE = {
   artwork_type_title: '',
   date_display: '',
@@ -42,13 +45,12 @@ export const ArtworkDetailScreen: React.FC = () => {
   const [artwork, setArtwork] = useState<ArtworkDetail>(INITIAL_STATE);
   const [loading, setLoading] = useState(true);
 
-  const getArtorwDetail = useCallback(async () => {
+  const getArtworkDetail = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await apiProvider.getArtwork({ id });
       if (!error && data) {
         const image = getImageURL({ id: data.image_id, size: IMAGE_SIZE.M });
-        console.log(image);
         setArtwork({ ...data, image });
       }
     } catch (e) {
@@ -60,14 +62,13 @@ export const ArtworkDetailScreen: React.FC = () => {
 
   useEffect(() => {
     if (!artwork.date_display) {
-      getArtorwDetail();
+      getArtworkDetail();
     }
   }, [artwork.date_display]);
 
-  console.log(artwork);
   const goBack = useCallback(() => {
     navigation.goBack();
-  }, []);
+  }, [navigation]);
 
   const ListItem = ({
     title,
@@ -92,7 +93,7 @@ export const ArtworkDetailScreen: React.FC = () => {
           style={{ marginRight: 4, fontFamily: 'Roboto-Black', fontSize: 16 }}>
           {title}
         </Text>
-        <Text style={{ fontFamily: 'Roboto-Medium' }}>
+        <Text style={{ fontFamily: 'Roboto-Medium', flexShrink: 1 }}>
           {!description ? 'unknown' : description}
         </Text>
         <View></View>
@@ -100,39 +101,43 @@ export const ArtworkDetailScreen: React.FC = () => {
     );
   };
   return (
-    <SafeAreaView style={{ backgroundColor: Colors.CAMEO_PINK }}>
-      <TouchableHighlight onPress={goBack}>
-        <Text>Hola</Text>
-      </TouchableHighlight>
+    <SafeAreaView style={{ backgroundColor: Colors.CAMEO_PINK, flex: 1 }}>
+      <TouchableWithoutFeedback
+        onPress={goBack}
+        style={{ marginLeft: 16, marginVertical: 16 }}>
+        <Text>{'<'}</Text>
+      </TouchableWithoutFeedback>
       {loading ? (
-        <ActivityIndicator />
-      ) : (
-        <View>
-          <Image
-            source={{ uri: artwork.image }}
-            style={{ width: width, minHeight: 300, height: height }}
-          />
-          <ListItem
-            title="Artist"
-            description={artwork.artist_title}
-            backgroundColor={Colors.KOBI}
-          />
-          <ListItem
-            title="Date"
-            description={artwork.date_display}
-            backgroundColor={Colors.PASTEL_PINK}
-          />
-          <ListItem
-            title="Medium"
-            description={artwork.medium_display}
-            backgroundColor={Colors.PURPLE_MOUNTAIN}
-          />
-          <ListItem
-            title="Style"
-            description={artwork.style_title}
-            backgroundColor={Colors.MIDDLE_PURPLE}
-          />
+        <View
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator />
         </View>
+      ) : (
+        <ScrollView>
+          <PinchToZoom image={artwork.image} />
+          <View style={{ flex: 1 }}>
+            <ListItem
+              title="Artist"
+              description={artwork.artist_title}
+              backgroundColor={Colors.KOBI}
+            />
+            <ListItem
+              title="Date"
+              description={artwork.date_display}
+              backgroundColor={Colors.PASTEL_PINK}
+            />
+            <ListItem
+              title="Medium"
+              description={artwork.medium_display}
+              backgroundColor={Colors.PURPLE_MOUNTAIN}
+            />
+            <ListItem
+              title="Style"
+              description={artwork.style_title}
+              backgroundColor={Colors.MIDDLE_PURPLE}
+            />
+          </View>
+        </ScrollView>
       )}
     </SafeAreaView>
   );
