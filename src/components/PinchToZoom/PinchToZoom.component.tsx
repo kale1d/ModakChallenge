@@ -1,5 +1,5 @@
 import { Dimensions, StyleSheet } from 'react-native';
-import GestureHandler, {
+import {
   PinchGestureHandler,
   PinchGestureHandlerGestureEvent,
 } from 'react-native-gesture-handler';
@@ -7,9 +7,9 @@ import Animated, {
   useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
-  useValue,
   withTiming,
 } from 'react-native-reanimated';
+
 import { FadeInImage } from '../FadeInImage';
 
 const { width, height } = Dimensions.get('window');
