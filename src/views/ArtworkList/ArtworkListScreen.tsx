@@ -1,11 +1,15 @@
+import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { FlatList, Image, Text, View } from 'react-native';
+import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppStackNavigationProp } from '../../navigation/navTypes';
 import { apiProvider } from '../../provider/apiProvider';
 import { Artwork } from '../../types/Artworks.types';
-import { getImageURL, IMAGE_SIZE } from '../../util';
+import { Colors } from '../../utils/colors';
+import { getImageURL, IMAGE_SIZE, randomColor } from '../../utils/util';
 
-export const ArtworkListScreen = () => {
+export const ArtworkListScreen: React.FC = () => {
+  const navigation = useNavigation<AppStackNavigationProp>();
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -25,7 +29,7 @@ export const ArtworkListScreen = () => {
         setArtworks(() => [...artworks, ...test]);
       }
     } catch (e) {
-      console.log({ e });
+      console.error(e);
     } finally {
       setLoading(false);
     }
@@ -34,6 +38,10 @@ export const ArtworkListScreen = () => {
   const getMoreArtworks = useCallback(() => {
     setPage(page + 1);
   }, [page]);
+
+  const goToDetail = useCallback(({ id }: { id: number }) => {
+    return navigation.navigate('ArtworkDetail', { id });
+  }, []);
 
   useEffect(() => {
     if (!artworks.length) {
@@ -47,24 +55,57 @@ export const ArtworkListScreen = () => {
     }
   }, [page]);
 
-  const renderItem = ({ item }: { item: Artwork }) => {
-    return (
-      //agregar placeholder
-      <View>
-        <Text>{item.title}</Text>
-        <Image
-          source={{ uri: item.image }}
-          style={{ width: 300, height: 300 }}
-        />
-      </View>
-    );
-  };
+  const renderItem = useCallback(
+    ({ item, index }: { item: Artwork; index: number }) => {
+      const isEven = index % 2 === 0;
+      return (
+        //agregar placeholder
+        <TouchableOpacity onPress={() => goToDetail({ id: item.id })}>
+          <View
+            style={[
+              isEven
+                ? { flexDirection: 'row', backgroundColor: Colors.KOBI }
+                : {
+                    flexDirection: 'row-reverse',
+                    justifyContent: 'flex-end',
+                    backgroundColor: Colors.PURPLE_MOUNTAIN,
+                  },
+              {
+                flex: 1,
+                alignItems: 'center',
+              },
+            ]}>
+            <Image
+              source={{ uri: item.image }}
+              style={[{ flexGrow: 1 }, { width: 150, height: 150 }]}
+            />
+            <View
+              style={{
+                flexGrow: 3,
+                flexShrink: 1,
+                marginLeft: 16,
+              }}>
+              <Text style={{ fontFamily: 'Staatliches-Regular', fontSize: 22 }}>
+                {item.title}
+              </Text>
+              <Text style={{ fontFamily: 'Staatliches-Regular', fontSize: 16 }}>
+                {item.artist_title}
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      );
+    },
+    [],
+  );
+
+  const keyExtractor = useCallback(({ id }: { id: number }) => `${id}`, []);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'lightgrey' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.CAMEO_PINK }}>
       <FlatList
         data={artworks}
-        keyExtractor={(_, index) => String(index)}
+        keyExtractor={keyExtractor}
         renderItem={renderItem}
         onEndReachedThreshold={0.5}
         onEndReached={getMoreArtworks}
