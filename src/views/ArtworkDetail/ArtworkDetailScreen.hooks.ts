@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -29,6 +30,7 @@ export const useArtworkDetail = () => {
   const id = route.params?.id || 0;
   const [artwork, setArtwork] = useState<ArtworkDetail>(INITIAL_STATE);
   const [loading, setLoading] = useState(true);
+  const [isSelected, setIsSelected] = useState(false);
 
   const getArtworkDetail = useCallback(async () => {
     try {
@@ -55,5 +57,38 @@ export const useArtworkDetail = () => {
     navigation.goBack();
   }, [navigation]);
 
-  return { loading, artwork, goBack };
+  const handleOnPressFavorite = useCallback(async () => {
+    try {
+      const favorites = await AsyncStorage.getItem('favorites');
+
+      let parsedFavorites: ArtworkDetail[] = [];
+      if (favorites) {
+        parsedFavorites = JSON.parse(favorites);
+        if (!isSelected) {
+          const asd = [...parsedFavorites, artwork];
+          await AsyncStorage.setItem('favorites', JSON.stringify(asd));
+          setIsSelected(true);
+        } else {
+          const indexOfArtwork = parsedFavorites.findIndex(
+            (fav: ArtworkDetail) => fav.image_id === artwork.image_id,
+          );
+          await AsyncStorage.removeItem('favorites');
+          const filteredArtworks = parsedFavorites.splice(0, indexOfArtwork);
+          await AsyncStorage.setItem(
+            'favorites',
+            JSON.stringify(filteredArtworks),
+          );
+          setIsSelected(false);
+        }
+      } else {
+        const aaa = JSON.stringify([artwork]);
+        await AsyncStorage.setItem('favorites', aaa);
+        setIsSelected(true);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [artwork]);
+
+  return { loading, artwork, goBack, handleOnPressFavorite, isSelected };
 };

@@ -14,7 +14,15 @@ import { FadeInImage } from '../FadeInImage';
 
 const { width, height } = Dimensions.get('window');
 
-export const PinchToZoom = ({ image }: { image?: string }) => {
+export const PinchToZoom = ({
+  image,
+  onPressFavorite,
+  pressed,
+}: {
+  image?: string;
+  onPressFavorite: () => void;
+  pressed?: boolean;
+}) => {
   const scale = useSharedValue(1);
   const focalX = useSharedValue(0);
   const focalY = useSharedValue(0);
@@ -60,7 +68,11 @@ export const PinchToZoom = ({ image }: { image?: string }) => {
           image={image}
           resizeMode="cover"
           style={[{ width: width, minHeight: height / 1.5 }, animatedStyle]}
+          isFavorite
+          onPressFavorite={onPressFavorite}
+          pressed={pressed}
         />
+
         <Animated.View
           style={[
             {

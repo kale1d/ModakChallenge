@@ -3,24 +3,28 @@ import { useNavigation } from '@react-navigation/native';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 import { AppStackNavigationProp } from '../../navigation/navTypes';
-import { apiProvider } from '../../provider/apiProvider';
-import { Artwork } from '../../types/Artworks.types';
+import { Artwork, ArtworkDetail } from '../../types/Artworks.types';
 
 import { FadeInImage } from '../../components/FadeInImage';
 import { getImageURL, IMAGE_SIZE } from '../../utils/util';
 
-import { styles } from './ArtworkList.styles';
+import { styles } from './ArtworkFavorites.styles';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const useArtworkList = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
-  const [artworks, setArtworks] = useState<Artwork[]>([]);
-  const [page, setPage] = useState(1);
+  const [artworks, setArtworks] = useState<ArtworkDetail[]>([]);
+
+  const goBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const getArtworkList = useCallback(async () => {
     try {
-      const { data, error } = await apiProvider.getArtworks({ page });
-      if (data && !error) {
-        const test = data.map((a) => {
+      const favorites = await AsyncStorage.getItem('favorites');
+      if (favorites) {
+        const parsedFavorites = JSON.parse(favorites);
+        const test = parsedFavorites.map((a) => {
           const img = getImageURL({
             id: a.image_id,
             size: IMAGE_SIZE.XS,
@@ -32,11 +36,11 @@ export const useArtworkList = () => {
     } catch (e) {
       console.error(e);
     }
-  }, [page]);
+  }, []);
 
-  const getMoreArtworks = useCallback(() => {
-    setPage(page + 1);
-  }, [page]);
+  // const getMoreArtworks = useCallback(() => {
+  //   setPage(page + 1);
+  // }, [page]);
 
   const goToDetail = useCallback(
     ({ id }: { id: number }) => {
@@ -45,27 +49,16 @@ export const useArtworkList = () => {
     [navigation],
   );
 
-  const goToFavorites = useCallback(() => {
-    navigation.navigate('ArtworkFavorites');
-  }, [navigation]);
-
   useEffect(() => {
     if (!artworks.length) {
       getArtworkList();
     }
   }, [artworks.length]);
 
-  useEffect(() => {
-    if (artworks.length) {
-      getArtworkList();
-    }
-  }, [page]);
-
   return {
     artworks,
     goToDetail,
-    getMoreArtworks,
-    goToFavorites,
+    goBack,
   };
 };
 
@@ -75,7 +68,7 @@ export const useFlatListElements = ({
   goToDetail: ({ id }: { id: number }) => void;
 }) => {
   const renderItem = useCallback(
-    ({ item, index }: { item: Artwork; index: number }) => {
+    ({ item, index }: { item: ArtworkDetail; index: number }) => {
       const isEven = index % 2 === 0;
       return (
         <TouchableOpacity onPress={() => goToDetail({ id: item.id })}>
@@ -90,7 +83,7 @@ export const useFlatListElements = ({
               style={[styles.flexGrow1, styles.imageSize]}
             />
             <View style={styles.info}>
-              <Text style={styles.title}>{item.title}</Text>
+              <Text style={styles.title}>{item.artwork_type_title}</Text>
               <Text style={styles.artist}>{item.artist_title}</Text>
             </View>
           </View>

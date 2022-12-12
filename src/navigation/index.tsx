@@ -7,6 +7,7 @@ import {
 } from '@react-navigation/stack';
 import { ArtworkDetailScreen, ArtworkListScreen } from '../views';
 import { Dimensions, Platform } from 'react-native';
+import { ArtworkFavoritesScreen } from '../views/ArtworkFavorites';
 const { width, height } = Dimensions.get('screen');
 
 const gestureHandlerConfig = {
@@ -28,6 +29,10 @@ export const AppNavigator = () => {
           ...TransitionPresets.ModalSlideFromBottomIOS,
           ...gestureHandlerConfig,
         }}>
+        <Stack.Screen
+          name="ArtworkFavorites"
+          component={ArtworkFavoritesScreen}
+        />
         <Stack.Screen name="ArtworkList" component={ArtworkListScreen} />
         <Stack.Screen name="ArtworkDetail" component={ArtworkDetailScreen} />
       </Stack.Navigator>

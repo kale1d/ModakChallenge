@@ -1,14 +1,25 @@
 import React, { useEffect } from 'react';
-import { ImageStyle } from 'react-native';
+import { ImageStyle, Text, TouchableWithoutFeedback, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
 
-export const FadeInImage: React.FC<{ image?: string; style: ImageStyle[] }> = ({
+export const FadeInImage: React.FC<{
+  image?: string;
+  style: ImageStyle[];
+  isFavorite?: boolean;
+  pressed?: boolean;
+  onPressFavorite?: () => void;
+  resizeMode: 'cover' | 'repeat' | 'stretch' | 'contain' | 'center';
+}> = ({
   image,
   style,
+  resizeMode,
+  isFavorite = false,
+  pressed = false,
+  onPressFavorite,
   ...props
 }) => {
   const opacity = useSharedValue(0);
@@ -24,10 +35,18 @@ export const FadeInImage: React.FC<{ image?: string; style: ImageStyle[] }> = ({
   }, [opacity]);
 
   return (
-    <Animated.Image
-      {...props}
-      source={{ uri: image }}
-      style={[style, animatedStyle]}
-    />
+    <View>
+      <Animated.Image
+        {...props}
+        resizeMode={resizeMode}
+        source={{ uri: image }}
+        style={[style, animatedStyle]}
+      />
+      {isFavorite && (
+        <TouchableWithoutFeedback onPress={onPressFavorite}>
+          {!pressed ? <Text>Favorito</Text> : <Text>Remover</Text>}
+        </TouchableWithoutFeedback>
+      )}
+    </View>
   );
 };

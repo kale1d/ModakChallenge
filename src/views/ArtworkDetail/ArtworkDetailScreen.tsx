@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import {
   ScrollView,
@@ -12,9 +12,16 @@ import { ListItem } from './components/ListItem';
 
 import { useArtworkDetail } from './ArtworkDetailScreen.hooks';
 import { styles } from './ArtworkDetail.styles';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const ArtworkDetailScreen: React.FC = () => {
-  const { loading, artwork, goBack } = useArtworkDetail();
+  const { loading, artwork, goBack, handleOnPressFavorite, isSelected } =
+    useArtworkDetail();
+
+  // useEffect(() => {
+  //   const removeItem = async () => await AsyncStorage.removeItem('favorites');
+  //   removeItem();
+  // }, []);
 
   return (
     <SafeAreaView style={[styles.flex1, styles.container]}>
@@ -27,7 +34,11 @@ export const ArtworkDetailScreen: React.FC = () => {
         </View>
       ) : (
         <ScrollView>
-          <PinchToZoom image={artwork.image} />
+          <PinchToZoom
+            image={artwork.image}
+            pressed={isSelected}
+            onPressFavorite={handleOnPressFavorite}
+          />
           <View style={styles.flex1}>
             <ListItem
               title="Artist"
